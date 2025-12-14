@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ask Olcer v2.0</title>
+    <title>Ask Olcer v3.0 - ASCII Edition</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -18,7 +18,7 @@
             overflow-x: hidden;
         }
 
-        /* --- 1. ARKA PLAN (DAHA FAZLA VE KÜÇÜK KALP) --- */
+        /* --- ARKA PLAN (KALPLER) --- */
         #bg-pattern {
             position: fixed;
             top: 0;
@@ -26,13 +26,13 @@
             width: 100%;
             height: 100%;
             z-index: -1;
-            color: rgba(220, 20, 60, 0.08); /* Çok silik kırmızı */
-            font-size: 14px; /* Daha küçük kalpler */
+            color: rgba(220, 20, 60, 0.08);
+            font-size: 14px;
             word-wrap: break-word;
             overflow: hidden;
             pointer-events: none;
             line-height: 14px;
-            white-space: pre-wrap; /* Satırları doldur */
+            white-space: pre-wrap;
         }
 
         .container {
@@ -40,35 +40,34 @@
             margin: 20px auto;
             background: rgba(255, 255, 255, 0.95);
             padding: 25px;
-            border: 6px solid #8b4513; /* Çerçeve artık tahta rengine uyumlu koyu kahve */
+            border: 6px solid #8b4513; /* Koyu Kahve Çerçeve */
             border-radius: 15px;
             box-shadow: 10px 10px 20px rgba(0,0,0,0.1);
             position: relative;
             z-index: 10;
         }
 
-        /* --- 2. SENSÖR İKONU VE BAŞLIK --- */
-        .header-area {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-bottom: 2px dashed #8b4513;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .sensor-icon {
-            width: 50px;
-            height: 50px;
-            margin-right: 15px;
-            fill: #555;
+        /* --- ASCII ART BÖLÜMÜ --- */
+        .ascii-art {
+            font-size: 12px; /* Mobilde taşmasın diye boyutu ayarladık */
+            line-height: 12px;
+            white-space: pre; /* Boşlukları korur */
+            overflow-x: auto; /* Taşarsa kaydırma çubuğu çıkar */
+            margin: 0 auto 20px auto;
+            color: #5d4037;
+            font-weight: bold;
+            display: inline-block;
+            text-align: left;
         }
 
         h2 {
             margin: 0;
-            color: #8b4513; /* SaddleBrown */
+            color: #8b4513;
             text-transform: uppercase;
             letter-spacing: 2px;
+            border-bottom: 2px dashed #8b4513;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
         }
 
         .value {
@@ -85,88 +84,46 @@
             border-radius: 8px;
             font-weight: bold;
             border: 2px solid #333;
+            margin-bottom: 20px;
         }
         .danger { color: #fff; background-color: #d32f2f; border-color: #b71c1c; }
         .safe { color: #fff; background-color: #388e3c; border-color: #2e7d32; }
 
-        /* --- 3. TAHTA GÖRÜNÜMLÜ CETVEL --- */
-        .ruler-section {
-            margin-top: 30px;
-            text-align: left;
-        }
-        .ruler-container {
-            width: 100%;
-            height: 45px;
-            border: 3px solid #5d4037;
-            background: #eefeeb; /* Boş kısım açık renk */
-            position: relative;
-            border-radius: 4px;
-            overflow: hidden; /* Taşan kısımları gizle */
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
-        }
-        
-        /* Ahşap Dokusu */
-        .ruler-bar {
-            height: 100%;
-            width: 0%;
-            /* Ahşap Gradyanı */
-            background: repeating-linear-gradient(
-                45deg,
-                #8b4513,
-                #8b4513 10px,
-                #a0522d 10px,
-                #a0522d 20px
-            );
-            transition: width 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
-            border-right: 4px solid #3e2723;
-            position: relative;
-        }
-
-        /* Cetvel Rakamları */
-        .ruler-ticks {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: space-between;
-            font-size: 11px;
-            font-weight: bold;
-            color: #333;
-            padding-top: 25px;
-            pointer-events: none;
-            z-index: 5;
-        }
-        .tick-line {
-            position: absolute;
-            top: 0;
-            height: 20px;
-            border-right: 2px solid rgba(0,0,0,0.5);
-        }
-
-        /* --- 4. GELİŞMİŞ GEÇMİŞ LİSTESİ (1 SAAT) --- */
+        /* --- GEÇMİŞ LİSTESİ --- */
         .history-section {
-            margin-top: 35px;
+            margin-top: 20px;
             text-align: left;
             background: #fff8f0;
             padding: 15px;
             border: 2px solid #d7ccc8;
             border-radius: 8px;
         }
-        .history-title {
-            font-weight: bold;
-            color: #5d4037;
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             border-bottom: 2px solid #d7ccc8;
             padding-bottom: 5px;
             margin-bottom: 10px;
+            font-weight: bold;
+            color: #5d4037;
         }
+        /* Geçmişi temizle butonu */
+        .clear-btn {
+            font-size: 10px;
+            background: #d7ccc8;
+            border: none;
+            cursor: pointer;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+
         ul {
             list-style-type: none;
             padding: 0;
             margin: 0;
-            height: 250px; /* Liste yüksekliği arttırıldı */
-            overflow-y: auto; /* Scrollbar */
+            height: 250px;
+            overflow-y: auto;
             font-size: 13px;
         }
         li {
@@ -186,7 +143,7 @@
 
         .footer { margin-top: 20px; font-size: 10px; color: #888; }
         
-        /* Scrollbar Güzelleştirme */
+        /* Scrollbar */
         ul::-webkit-scrollbar { width: 8px; }
         ul::-webkit-scrollbar-track { background: #f1f1f1; }
         ul::-webkit-scrollbar-thumb { background: #8b4513; border-radius: 4px; }
@@ -198,58 +155,46 @@
 
 <div class="container">
     
-    <div class="header-area">
-        <svg class="sensor-icon" viewBox="0 0 24 24">
-            <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z" />
-        </svg>
-        <div>
-            <h2>MESAFE<br>MONITORU</h2>
-        </div>
+    <h2>MESAFE MONITORU</h2>
+
+    <div class="ascii-art">
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡀⠀⠀⠀⠀
+⠀⠀⠀⠀⢀⡴⣆⠀⠀⠀⠀⠀⣠⡀ ᶻ 𝗓 𐰁 .ᐟ ⣼⣿⡗⠀⠀⠀⠀
+⠀⠀⠀⣠⠟⠀⠘⠷⠶⠶⠶⠾⠉⢳⡄⠀⠀⠀⠀⠀⣧⣿⠀⠀⠀⠀⠀
+⠀⠀⣰⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢻⣤⣤⣤⣤⣤⣿⢿⣄⠀⠀⠀⠀
+⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣧⠀⠀⠀⠀⠀⠀⠙⣷⡴⠶⣦
+⠀⠀⢱⡀⠀⠉⠉⠀⠀⠀⠀⠛⠃⠀⢠⡟⠀⠀⠀⢀⣀⣠⣤⠿⠞⠛⠋
+⣠⠾⠋⠙⣶⣤⣤⣤⣤⣤⣀⣠⣤⣾⣿⠴⠶⠚⠋⠉⠁⠀⠀⠀⠀⠀⠀
+⠛⠒⠛⠉⠉⠀⠀⠀⣴⠟⢃⡴⠛⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠛⠛⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
     </div>
     
     <div id="displayValue" class="value">-- cm</div>
     <div id="statusBox" class="status-box">[ ? ] BEKLENIYOR...</div>
 
-    <div class="ruler-section">
-        <small style="color:#5d4037; font-weight:bold;">CANLI OLCUM CETVELI (Max 50cm):</small>
-        <div class="ruler-container">
-            <div id="rulerBar" class="ruler-bar"></div>
-            <div class="ruler-ticks">
-                <span style="margin-left:5px;">0</span>
-                <span>10</span>
-                <span>20</span>
-                <span>30</span>
-                <span>40</span>
-                <span style="margin-right:5px;">50</span>
-            </div>
-            <div class="tick-line" style="left: 20%"></div>
-            <div class="tick-line" style="left: 40%"></div>
-            <div class="tick-line" style="left: 60%"></div>
-            <div class="tick-line" style="left: 80%"></div>
-        </div>
-    </div>
-
     <div class="history-section">
-        <div class="history-title">⏱ GECMIS VERILER (Son 1 Saat)</div>
+        <div class="history-header">
+            <span>⏱ GECMIS VERILER</span>
+            <button class="clear-btn" onclick="clearHistory()">TEMIZLE</button>
+        </div>
         <ul id="historyList">
-            <li style="justify-content:center; color:#aaa;">Veri bekleniyor...</li>
+            <li style="justify-content:center; color:#aaa;">Kayitlar yukleniyor...</li>
         </ul>
     </div>
 
     <div class="footer">
-        Veriler anlik olarak Firebase Realtime Database uzerinden cekilmektedir.<br>
+        Veriler canli olarak Firebase'den cekilir.<br>
+        Gecmis veriler tarayicinda saklanir.<br>
         <span id="lastUpdate">--</span>
     </div>
 </div>
 
 <script>
-    // 1. Arka Planı KÜÇÜK Kalplerle Doldur (Daha yoğun)
+    // 1. Arka Plan
     const bgDiv = document.getElementById('bg-pattern');
     let hearts = "";
-    // Sayıyı artırdım (2500 adet)
     for(let i=0; i<2500; i++) {
         hearts += "♥ "; 
-        // Rastgele boşluklar ekle ki doğal dursun
         if(Math.random() > 0.9) hearts += "   ";
     }
     bgDiv.innerText = hearts;
@@ -269,7 +214,41 @@
     const db = firebase.database();
     const distanceRef = db.ref('/sensor/distance');
     
-    let lastValue = -1; 
+    // --- 2. HAFIZA YÖNETİMİ (Persistence) ---
+    // Tarayıcı hafızasından eski verileri çek
+    let savedHistory = JSON.parse(localStorage.getItem('sensorHistory')) || [];
+
+    const historyList = document.getElementById('historyList');
+
+    // Sayfa ilk açıldığında hafızadaki listeyi ekrana bas
+    function renderHistory() {
+        historyList.innerHTML = "";
+        if (savedHistory.length === 0) {
+            historyList.innerHTML = '<li style="justify-content:center; color:#aaa;">Henuz kayit yok...</li>';
+            return;
+        }
+        
+        savedHistory.forEach(item => {
+            const li = document.createElement("li");
+            // Eğer yeni eklenen bir maddeyse animasyon class'ı ekle (basit kontrol)
+            li.innerHTML = `<span>⏰ ${item.time}</span> <span><b>${item.val} cm</b></span>`;
+            historyList.appendChild(li); 
+        });
+    }
+
+    // İlk yüklemede çalıştır
+    renderHistory();
+
+    // Veriyi Sıfırlama Fonksiyonu
+    window.clearHistory = function() {
+        if(confirm("Gecmis kayitlari silmek istiyor musun?")) {
+            localStorage.removeItem('sensorHistory');
+            savedHistory = [];
+            renderHistory();
+        }
+    }
+
+    let lastVal = -1;
 
     distanceRef.on('value', (snapshot) => {
         const data = snapshot.val();
@@ -277,11 +256,9 @@
         const displayDiv = document.getElementById('displayValue');
         const statusDiv = document.getElementById('statusBox');
         const updateSpan = document.getElementById('lastUpdate');
-        const historyList = document.getElementById('historyList');
-        const rulerBar = document.getElementById('rulerBar');
 
         if (data !== null) {
-            // METİN GÜNCELLEME
+            // EKRAN GÜNCELLEME
             displayDiv.innerText = data + " cm";
 
             // DURUM KUTUSU
@@ -293,41 +270,31 @@
                 statusDiv.innerText = "✅ MESAFE GUVENLI";
             }
             
-            // CETVEL GÜNCELLEME
-            let percent = (data / 50) * 100;
-            if (percent > 100) percent = 100;
-            if (percent < 0) percent = 0;
-            rulerBar.style.width = percent + "%";
-
             // SAAT
             const now = new Date();
             const timeString = now.toLocaleTimeString();
             updateSpan.innerText = "Son Guncelleme: " + timeString;
 
-            // GEÇMİŞ LİSTESİ YÖNETİMİ
-            if (true) { 
-                // İlk açılış mesajını temizle
-                if(historyList.children.length > 0 && historyList.children[0].innerText.includes("Veri bekleniyor")) {
-                    historyList.innerHTML = "";
-                }
-
-                const li = document.createElement("li");
-                li.className = "new-item";
-                li.innerHTML = `<span>⏰ ${timeString}</span> <span><b>${data} cm</b></span>`;
-
-                historyList.prepend(li);
-
-                // --- 1 SAAT HESABI ---
-                // ESP32 yaklaşık 10 saniyede bir veri atıyor.
-                // 1 dakika = 6 veri.
-                // 60 dakika = 360 veri.
-                // Listede 360'tan fazla kayıt varsa eskileri sil.
-                if (historyList.children.length > 360) {
-                    historyList.removeChild(historyList.lastChild);
-                }
-                
-                lastValue = data;
+            // LİSTEYE EKLEME VE KAYDETME
+            // Sadece veri değiştiyse veya her zaman (isteğe bağlı). 
+            // Burada her gelen veriyi ekliyoruz.
+            
+            // Yeni veri objesi
+            const newEntry = { time: timeString, val: data };
+            
+            // Dizinin başına ekle (Yeni en üstte)
+            savedHistory.unshift(newEntry);
+            
+            // Çok şişmesin diye son 500 kaydı tutalım
+            if(savedHistory.length > 500) {
+                savedHistory.pop();
             }
+
+            // Tarayıcı hafızasına (LocalStorage) kaydet
+            localStorage.setItem('sensorHistory', JSON.stringify(savedHistory));
+
+            // Listeyi tekrar çiz
+            renderHistory();
         }
     });
 </script>
