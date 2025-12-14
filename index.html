@@ -139,7 +139,10 @@
             dataArr.forEach((item) => {
                 // Listeye Ekle
                 const li = document.createElement("li");
-                li.innerHTML = `<span class="timestamp">[ ${item.zaman} ]</span> -> ${item.mesafe} cm`;
+                // Gelen veri sayı mı kontrol et (isNaN = Is Not a Number)
+                let birim = isNaN(item.mesafe) ? "" : " cm"; 
+                li.innerHTML = `<span class="timestamp">[ ${item.zaman} ]</span> -> ${item.mesafe}${birim}`;
+                allDataText += `${item.zaman}  | ${item.mesafe}${birim}\n`;
                 listElement.appendChild(li);
 
                 // İndirme metnine ekle
@@ -173,3 +176,4 @@
 
 </body>
 </html>
+
