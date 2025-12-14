@@ -74,7 +74,6 @@
         }
         li {
             padding: 8px;
-            border-bottom: 1px solid #e0e0e0;
             font-size: 14px;
         }
         /* Yeni eklenen veri parlasın */
@@ -102,7 +101,7 @@
     <div id="statusBox" class="status-box">[ ? ] BEKLENIYOR...</div>
 
     <div class="history-section">
-        <div class="history-title">>> SON OL CUMLER (CANLI LOG)</div>
+        <div class="history-title">>> Son Veriler </div>
         <ul id="historyList">
             <li style="color:#aaa; text-align:center;">Henuz veri gelmedi...</li>
         </ul>
@@ -180,11 +179,6 @@
                 // En üste ekle (prepend)
                 historyList.prepend(li);
 
-                // Listeyi temiz tut (Sadece son 15 veriyi göster)
-                if (historyList.children.length > 15) {
-                    historyList.removeChild(historyList.lastChild);
-                }
-
                 lastValue = data;
             }
         }
@@ -193,3 +187,4 @@
 
 </body>
 </html>
+
