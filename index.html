@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ask Olcer v3.0 - ASCII Edition</title>
+    <title>Ask Olcer - Canli</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -18,7 +18,6 @@
             overflow-x: hidden;
         }
 
-        /* --- ARKA PLAN (KALPLER) --- */
         #bg-pattern {
             position: fixed;
             top: 0;
@@ -40,19 +39,18 @@
             margin: 20px auto;
             background: rgba(255, 255, 255, 0.95);
             padding: 25px;
-            border: 6px solid #8b4513; /* Koyu Kahve Çerçeve */
+            border: 6px solid #8b4513;
             border-radius: 15px;
             box-shadow: 10px 10px 20px rgba(0,0,0,0.1);
             position: relative;
             z-index: 10;
         }
 
-        /* --- ASCII ART BÖLÜMÜ --- */
         .ascii-art {
-            font-size: 12px; /* Mobilde taşmasın diye boyutu ayarladık */
+            font-size: 12px;
             line-height: 12px;
-            white-space: pre; /* Boşlukları korur */
-            overflow-x: auto; /* Taşarsa kaydırma çubuğu çıkar */
+            white-space: pre;
+            overflow-x: auto;
             margin: 0 auto 20px auto;
             color: #5d4037;
             font-weight: bold;
@@ -89,7 +87,6 @@
         .danger { color: #fff; background-color: #d32f2f; border-color: #b71c1c; }
         .safe { color: #fff; background-color: #388e3c; border-color: #2e7d32; }
 
-        /* --- GEÇMİŞ LİSTESİ --- */
         .history-section {
             margin-top: 20px;
             text-align: left;
@@ -99,25 +96,12 @@
             border-radius: 8px;
         }
         .history-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            font-weight: bold;
+            color: #5d4037;
             border-bottom: 2px solid #d7ccc8;
             padding-bottom: 5px;
             margin-bottom: 10px;
-            font-weight: bold;
-            color: #5d4037;
         }
-        /* Geçmişi temizle butonu */
-        .clear-btn {
-            font-size: 10px;
-            background: #d7ccc8;
-            border: none;
-            cursor: pointer;
-            padding: 3px 8px;
-            border-radius: 4px;
-        }
-
         ul {
             list-style-type: none;
             padding: 0;
@@ -143,7 +127,6 @@
 
         .footer { margin-top: 20px; font-size: 10px; color: #888; }
         
-        /* Scrollbar */
         ul::-webkit-scrollbar { width: 8px; }
         ul::-webkit-scrollbar-track { background: #f1f1f1; }
         ul::-webkit-scrollbar-thumb { background: #8b4513; border-radius: 4px; }
@@ -154,7 +137,6 @@
 <div id="bg-pattern"></div>
 
 <div class="container">
-    
     <h2>MESAFE MONITORU</h2>
 
     <div class="ascii-art">
@@ -173,24 +155,21 @@
     <div id="statusBox" class="status-box">[ ? ] BEKLENIYOR...</div>
 
     <div class="history-section">
-        <div class="history-header">
-            <span>⏱ GECMIS VERILER</span>
-            <button class="clear-btn" onclick="clearHistory()">TEMIZLE</button>
-        </div>
+        <div class="history-header">⏱ CANLI AKIS (1 Dakikada 1 Veri)</div>
         <ul id="historyList">
-            <li style="justify-content:center; color:#aaa;">Kayitlar yukleniyor...</li>
+            <li style="justify-content:center; color:#aaa;">Veri bekleniyor...</li>
         </ul>
     </div>
 
     <div class="footer">
-        Veriler canli olarak Firebase'den cekilir.<br>
-        Gecmis veriler tarayicinda saklanir.<br>
+        Herkes ayni veriyi gorur.<br>
+        Sayfa yenilenince liste sifirlanir.<br>
         <span id="lastUpdate">--</span>
     </div>
 </div>
 
 <script>
-    // 1. Arka Plan
+    // Arka Plan Kalpleri
     const bgDiv = document.getElementById('bg-pattern');
     let hearts = "";
     for(let i=0; i<2500; i++) {
@@ -214,41 +193,7 @@
     const db = firebase.database();
     const distanceRef = db.ref('/sensor/distance');
     
-    // --- 2. HAFIZA YÖNETİMİ (Persistence) ---
-    // Tarayıcı hafızasından eski verileri çek
-    let savedHistory = JSON.parse(localStorage.getItem('sensorHistory')) || [];
-
     const historyList = document.getElementById('historyList');
-
-    // Sayfa ilk açıldığında hafızadaki listeyi ekrana bas
-    function renderHistory() {
-        historyList.innerHTML = "";
-        if (savedHistory.length === 0) {
-            historyList.innerHTML = '<li style="justify-content:center; color:#aaa;">Henuz kayit yok...</li>';
-            return;
-        }
-        
-        savedHistory.forEach(item => {
-            const li = document.createElement("li");
-            // Eğer yeni eklenen bir maddeyse animasyon class'ı ekle (basit kontrol)
-            li.innerHTML = `<span>⏰ ${item.time}</span> <span><b>${item.val} cm</b></span>`;
-            historyList.appendChild(li); 
-        });
-    }
-
-    // İlk yüklemede çalıştır
-    renderHistory();
-
-    // Veriyi Sıfırlama Fonksiyonu
-    window.clearHistory = function() {
-        if(confirm("Gecmis kayitlari silmek istiyor musun?")) {
-            localStorage.removeItem('sensorHistory');
-            savedHistory = [];
-            renderHistory();
-        }
-    }
-
-    let lastVal = -1;
 
     distanceRef.on('value', (snapshot) => {
         const data = snapshot.val();
@@ -258,10 +203,10 @@
         const updateSpan = document.getElementById('lastUpdate');
 
         if (data !== null) {
-            // EKRAN GÜNCELLEME
+            // Ekrana Yaz
             displayDiv.innerText = data + " cm";
 
-            // DURUM KUTUSU
+            // Durum Kontrol
             if (data > 0 && data < 10) {
                 statusDiv.className = "status-box danger";
                 statusDiv.innerText = "⚠️ ENGEL TESPIT EDILDI!";
@@ -270,31 +215,23 @@
                 statusDiv.innerText = "✅ MESAFE GUVENLI";
             }
             
-            // SAAT
+            // Saat
             const now = new Date();
             const timeString = now.toLocaleTimeString();
             updateSpan.innerText = "Son Guncelleme: " + timeString;
 
-            // LİSTEYE EKLEME VE KAYDETME
-            // Sadece veri değiştiyse veya her zaman (isteğe bağlı). 
-            // Burada her gelen veriyi ekliyoruz.
-            
-            // Yeni veri objesi
-            const newEntry = { time: timeString, val: data };
-            
-            // Dizinin başına ekle (Yeni en üstte)
-            savedHistory.unshift(newEntry);
-            
-            // Çok şişmesin diye son 500 kaydı tutalım
-            if(savedHistory.length > 500) {
-                savedHistory.pop();
+            // Listeye Ekle (Kayıt yok, sadece anlık gösterim)
+            // Listenin başındaki "Veri bekleniyor" yazısını temizle
+            if(historyList.children.length > 0 && historyList.children[0].innerText.includes("Veri bekleniyor")) {
+                historyList.innerHTML = "";
             }
 
-            // Tarayıcı hafızasına (LocalStorage) kaydet
-            localStorage.setItem('sensorHistory', JSON.stringify(savedHistory));
-
-            // Listeyi tekrar çiz
-            renderHistory();
+            const li = document.createElement("li");
+            li.className = "new-item";
+            li.innerHTML = `<span>⏰ ${timeString}</span> <span><b>${data} cm</b></span>`;
+            
+            // En üste ekle
+            historyList.prepend(li);
         }
     });
 </script>
