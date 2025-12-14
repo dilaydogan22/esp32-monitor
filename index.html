@@ -18,15 +18,16 @@
         }
         .container {
             max-width: 450px;
-            margin: 50px auto;
+            margin: 30px auto;
             background: #fff;
             padding: 20px;
             border: 5px solid #ff69b4; /* Pembe */
-            box-shadow: 5px 5px 0px #ffb7b2;
+            box-shadow: 8px 8px 0px #ffb7b2;
         }
         h2 {
             border-bottom: 2px dashed #ff69b4;
             padding-bottom: 10px;
+            margin-top: 0;
         }
         .value {
             font-size: 60px;
@@ -48,10 +49,47 @@
             color: #4f8a10;
             background-color: #dff2bf;
         }
+        
+        /* GEÇMİŞ LİSTESİ TASARIMI */
+        .history-section {
+            margin-top: 30px;
+            text-align: left;
+            border-top: 2px dashed #ccc;
+            padding-top: 15px;
+        }
+        .history-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-decoration: underline;
+        }
+        ul {
+            list-style-type: none; /* Noktaları kaldır */
+            padding: 0;
+            margin: 0;
+            height: 200px; /* Liste uzarsa kaydırma çubuğu */
+            overflow-y: auto;
+            border: 1px solid #eee;
+            background-color: #fafafa;
+        }
+        li {
+            padding: 8px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 14px;
+        }
+        /* Yeni eklenen veri parlasın */
+        .new-item {
+            animation: flash 1s;
+        }
+        @keyframes flash {
+            0% { background-color: #ffeb3b; }
+            100% { background-color: transparent; }
+        }
+
         .footer {
             margin-top: 20px;
-            font-size: 12px;
-            color: #666;
+            font-size: 11px;
+            color: #888;
         }
     </style>
 </head>
@@ -63,23 +101,30 @@
     <div id="displayValue" class="value">-- cm</div>
     <div id="statusBox" class="status-box">[ ? ] BEKLENIYOR...</div>
 
+    <div class="history-section">
+        <div class="history-title">>> SON OL CUMLER (CANLI LOG)</div>
+        <ul id="historyList">
+            <li style="color:#aaa; text-align:center;">Henuz veri gelmedi...</li>
+        </ul>
+    </div>
+
     <div class="footer">
         Veri canli olarak Firebase'den cekiliyor.<br>
-        Guncelleme: <span id="lastUpdate">--</span>
+        <span id="lastUpdate">--</span>
     </div>
 </div>
 
 <script>
     // --- BURAYI KENDI BILGILERINLE DOLDUR ---
-const firebaseConfig = {
-        apiKey: "AIzaSyBa1JYDzUTa5Hi0pg-SSTDXiDW83o49ZcA", // Burası aynı kalsın, değiştirme
+    const firebaseConfig = {
+        apiKey: "AIzaSyBa1JYDzUTa5Hi0pg-SSTDXiDW83o49ZcA", 
         authDomain: "esp-32-distance.firebaseapp.com",
-        // İŞTE BURASI ÇOK ÖNEMLİ, HARFİ HARFİNE BUNU YAZ:
+        // SENİN DÜZELTTİĞİN DOĞRU ADRES:
         databaseURL: "https://esp-32-distance-default-rtdb.europe-west1.firebasedatabase.app",
         projectId: "esp-32-distance",
         storageBucket: "esp-32-distance.appspot.com",
-        messagingSenderId: "1025261979304", // Burası aynı kalsın
-        appId: "1:1025261979304:web:a36b7d8a66c5a23742649d" // Burası aynı kalsın
+        messagingSenderId: "1025261979304", 
+        appId: "1:1025261979304:web:a36b7d8a66c5a23742649d"
     };
 
     // Firebase'i başlat
@@ -88,17 +133,22 @@ const firebaseConfig = {
 
     // Veriyi Dinle (/sensor/distance yolu)
     const distanceRef = db.ref('/sensor/distance');
+    
+    // Eski veriyi tekrar tekrar yazmasın diye son okunanı tutalım
+    let lastValue = -1; 
 
     distanceRef.on('value', (snapshot) => {
         const data = snapshot.val();
         const displayDiv = document.getElementById('displayValue');
         const statusDiv = document.getElementById('statusBox');
         const updateSpan = document.getElementById('lastUpdate');
+        const historyList = document.getElementById('historyList');
 
         if (data !== null) {
+            // 1. Ana Ekranı Güncelle
             displayDiv.innerText = data + " cm";
 
-            // Durum Kontrolü
+            // Durum Kutusu
             if (data > 0 && data < 10) {
                 statusDiv.className = "status-box danger";
                 statusDiv.innerText = "[ ! ] ENGEL VAR (Role ACIK)";
@@ -109,12 +159,37 @@ const firebaseConfig = {
             
             // Saat güncelleme
             const now = new Date();
-            updateSpan.innerText = now.toLocaleTimeString();
+            const timeString = now.toLocaleTimeString();
+            updateSpan.innerText = "Son Guncelleme: " + timeString;
+
+            // 2. Geçmiş Listesine Ekle (Eğer veri değiştiyse veya yeni geldiyse)
+            // Not: Sürekli aynı veri geliyorsa listeyi doldurmasın diye kontrol koydum.
+            // İstersen "data !== lastValue" kısmını kaldırabilirsin.
+            if (true) { 
+                
+                // İlk açılıştaki "Veri gelmedi" yazısını temizle
+                if(historyList.children.length > 0 && historyList.children[0].innerText.includes("Henuz")) {
+                    historyList.innerHTML = "";
+                }
+
+                // Yeni liste elemanı oluştur
+                const li = document.createElement("li");
+                li.className = "new-item";
+                li.innerHTML = `<b>[${timeString}]</b> --> ${data} cm`;
+
+                // En üste ekle (prepend)
+                historyList.prepend(li);
+
+                // Listeyi temiz tut (Sadece son 15 veriyi göster)
+                if (historyList.children.length > 15) {
+                    historyList.removeChild(historyList.lastChild);
+                }
+
+                lastValue = data;
+            }
         }
     });
 </script>
 
 </body>
 </html>
-
-
