@@ -71,14 +71,15 @@
 
 <script>
     // --- BURAYI KENDI BILGILERINLE DOLDUR ---
-    const firebaseConfig = {
-        apiKey:AIzaSyBa1JYDzUTa5Hi0pg-SSTDXiDW83o49ZcA",
+const firebaseConfig = {
+        apiKey: "AIzaSyBa1JYDzUTa5Hi0pg-SSTDXiDW83o49ZcA", // Burası aynı kalsın, değiştirme
         authDomain: "esp-32-distance.firebaseapp.com",
-        databaseURL: "esp-32-distance-default-rtdb.europe-west1.firebasedatabase.app",
+        // İŞTE BURASI ÇOK ÖNEMLİ, HARFİ HARFİNE BUNU YAZ:
+        databaseURL: "https://esp-32-distance-default-rtdb.europe-west1.firebasedatabase.app",
         projectId: "esp-32-distance",
-        storageBucket: "esp-32-distance.firebasestorage.app",
-        messagingSenderId: "1025261979304",
-        appId: "1:1025261979304:web:a36b7d8a66c5a23742649d"
+        storageBucket: "esp-32-distance.appspot.com",
+        messagingSenderId: "1025261979304", // Burası aynı kalsın
+        appId: "1:1025261979304:web:a36b7d8a66c5a23742649d" // Burası aynı kalsın
     };
 
     // Firebase'i başlat
@@ -115,4 +116,5 @@
 
 </body>
 </html>
+
 
