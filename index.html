@@ -147,14 +147,6 @@
             // 1. Ana Ekranı Güncelle
             displayDiv.innerText = data + " cm";
 
-            // Durum Kutusu
-            if (data > 0 && data < 10) {
-                statusDiv.className = "status-box danger";
-                statusDiv.innerText = "[ ! ] ENGEL VAR (Role ACIK)";
-            } else {
-                statusDiv.className = "status-box safe";
-                statusDiv.innerText = "[ OK ] GUVENLI (Role KAPALI)";
-            }
             
             // Saat güncelleme
             const now = new Date();
@@ -187,4 +179,5 @@
 
 </body>
 </html>
+
 
