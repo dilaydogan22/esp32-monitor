@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ESP32 Ask Olcer</title>
+    <title>Ask Olcer v2.0</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -15,106 +15,114 @@
             color: #333;
             margin: 0;
             padding: 20px;
-            overflow-x: hidden; /* Yatay kaydırmayı engelle */
+            overflow-x: hidden;
         }
 
-        /* --- ARKA PLAN KALP EFEKTİ --- */
+        /* --- 1. ARKA PLAN (DAHA FAZLA VE KÜÇÜK KALP) --- */
         #bg-pattern {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1; /* En arkaya at */
-            color: rgba(255, 0, 0, 0.15); /* Kırmızı ve Soluk */
-            font-size: 20px;
+            z-index: -1;
+            color: rgba(220, 20, 60, 0.08); /* Çok silik kırmızı */
+            font-size: 14px; /* Daha küçük kalpler */
             word-wrap: break-word;
             overflow: hidden;
-            pointer-events: none; /* Tıklamayı engelleme */
-            line-height: 24px;
+            pointer-events: none;
+            line-height: 14px;
+            white-space: pre-wrap; /* Satırları doldur */
         }
 
         .container {
-            max-width: 450px;
-            margin: 30px auto;
-            background: rgba(255, 255, 255, 0.9); /* Arkadaki kalpler hafif görünsün diye şeffaf beyaz */
-            padding: 20px;
-            border: 5px solid #ff69b4; /* Pembe */
-            box-shadow: 8px 8px 0px #ffb7b2;
+            max-width: 500px;
+            margin: 20px auto;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border: 6px solid #8b4513; /* Çerçeve artık tahta rengine uyumlu koyu kahve */
+            border-radius: 15px;
+            box-shadow: 10px 10px 20px rgba(0,0,0,0.1);
             position: relative;
             z-index: 10;
         }
 
+        /* --- 2. SENSÖR İKONU VE BAŞLIK --- */
+        .header-area {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 2px dashed #8b4513;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .sensor-icon {
+            width: 50px;
+            height: 50px;
+            margin-right: 15px;
+            fill: #555;
+        }
+
         h2 {
-            border-bottom: 2px dashed #ff69b4;
-            padding-bottom: 10px;
-            margin-top: 0;
-            color: #d63384;
+            margin: 0;
+            color: #8b4513; /* SaddleBrown */
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
 
         .value {
-            font-size: 60px;
+            font-size: 70px;
             font-weight: bold;
-            margin: 20px 0;
+            color: #333;
+            margin: 10px 0;
             display: block;
+            text-shadow: 2px 2px 0px #eee;
         }
 
         .status-box {
-            padding: 15px;
-            margin-top: 20px;
-            border: 1px solid #333;
+            padding: 12px;
+            border-radius: 8px;
             font-weight: bold;
+            border: 2px solid #333;
         }
-        .danger { color: #d8000c; background-color: #ffd2d2; }
-        .safe { color: #4f8a10; background-color: #dff2bf; }
+        .danger { color: #fff; background-color: #d32f2f; border-color: #b71c1c; }
+        .safe { color: #fff; background-color: #388e3c; border-color: #2e7d32; }
 
-        /* --- GEÇMİŞ LİSTESİ --- */
-        .history-section {
-            margin-top: 30px;
-            text-align: left;
-            border-top: 2px dashed #ccc;
-            padding-top: 15px;
-        }
-        ul {
-            list-style-type: none;
-            padding: 0;
-            margin: 0;
-            height: 150px;
-            overflow-y: auto;
-            border: 1px solid #eee;
-            background-color: #fff;
-        }
-        li {
-            padding: 5px 10px;
-            border-bottom: 1px solid #eee;
-            font-size: 13px;
-        }
-        .new-item { animation: flash 1s; }
-        @keyframes flash {
-            0% { background-color: #ffeb3b; }
-            100% { background-color: transparent; }
-        }
-
-        /* --- CETVEL (RULER) --- */
+        /* --- 3. TAHTA GÖRÜNÜMLÜ CETVEL --- */
         .ruler-section {
-            margin-top: 25px;
+            margin-top: 30px;
             text-align: left;
         }
         .ruler-container {
             width: 100%;
-            height: 40px;
-            border: 2px solid #333;
-            background: #fff;
+            height: 45px;
+            border: 3px solid #5d4037;
+            background: #eefeeb; /* Boş kısım açık renk */
             position: relative;
-            margin-top: 5px;
+            border-radius: 4px;
+            overflow: hidden; /* Taşan kısımları gizle */
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
         }
+        
+        /* Ahşap Dokusu */
         .ruler-bar {
             height: 100%;
-            background-color: #ff69b4; /* Pembe Dolgu */
             width: 0%;
-            transition: width 0.5s ease-in-out; /* Yumuşak geçiş */
-            border-right: 2px solid #333;
+            /* Ahşap Gradyanı */
+            background: repeating-linear-gradient(
+                45deg,
+                #8b4513,
+                #8b4513 10px,
+                #a0522d 10px,
+                #a0522d 20px
+            );
+            transition: width 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
+            border-right: 4px solid #3e2723;
+            position: relative;
         }
+
+        /* Cetvel Rakamları */
         .ruler-ticks {
             position: absolute;
             top: 0;
@@ -123,18 +131,65 @@
             height: 100%;
             display: flex;
             justify-content: space-between;
-            font-size: 10px;
-            color: #555;
-            padding-top: 22px; /* Çizgileri alta it */
-            pointer-events: none;
-        }
-        .tick { border-right: 1px solid #ccc; height: 100%; width: 1px; }
-
-        .footer {
-            margin-top: 20px;
             font-size: 11px;
-            color: #888;
+            font-weight: bold;
+            color: #333;
+            padding-top: 25px;
+            pointer-events: none;
+            z-index: 5;
         }
+        .tick-line {
+            position: absolute;
+            top: 0;
+            height: 20px;
+            border-right: 2px solid rgba(0,0,0,0.5);
+        }
+
+        /* --- 4. GELİŞMİŞ GEÇMİŞ LİSTESİ (1 SAAT) --- */
+        .history-section {
+            margin-top: 35px;
+            text-align: left;
+            background: #fff8f0;
+            padding: 15px;
+            border: 2px solid #d7ccc8;
+            border-radius: 8px;
+        }
+        .history-title {
+            font-weight: bold;
+            color: #5d4037;
+            border-bottom: 2px solid #d7ccc8;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            height: 250px; /* Liste yüksekliği arttırıldı */
+            overflow-y: auto; /* Scrollbar */
+            font-size: 13px;
+        }
+        li {
+            padding: 6px 10px;
+            border-bottom: 1px dashed #ddd;
+            display: flex;
+            justify-content: space-between;
+        }
+        li:nth-child(even) { background-color: #fff; }
+        li:nth-child(odd) { background-color: #fafafa; }
+        
+        .new-item { animation: flash 1.5s; }
+        @keyframes flash {
+            0% { background-color: #ffeb3b; }
+            100% { background-color: transparent; }
+        }
+
+        .footer { margin-top: 20px; font-size: 10px; color: #888; }
+        
+        /* Scrollbar Güzelleştirme */
+        ul::-webkit-scrollbar { width: 8px; }
+        ul::-webkit-scrollbar-track { background: #f1f1f1; }
+        ul::-webkit-scrollbar-thumb { background: #8b4513; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -142,42 +197,60 @@
 <div id="bg-pattern"></div>
 
 <div class="container">
-    <h2>MESAFE MONITORU</h2>
+    
+    <div class="header-area">
+        <svg class="sensor-icon" viewBox="0 0 24 24">
+            <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z" />
+        </svg>
+        <div>
+            <h2>MESAFE<br>MONITORU</h2>
+        </div>
+    </div>
     
     <div id="displayValue" class="value">-- cm</div>
     <div id="statusBox" class="status-box">[ ? ] BEKLENIYOR...</div>
 
     <div class="ruler-section">
-        <small>Gorsel Mesafe (Max 50cm):</small>
+        <small style="color:#5d4037; font-weight:bold;">CANLI OLCUM CETVELI (Max 50cm):</small>
         <div class="ruler-container">
             <div id="rulerBar" class="ruler-bar"></div>
             <div class="ruler-ticks">
-                <span>0</span><span>10</span><span>20</span><span>30</span><span>40</span><span>50+</span>
+                <span style="margin-left:5px;">0</span>
+                <span>10</span>
+                <span>20</span>
+                <span>30</span>
+                <span>40</span>
+                <span style="margin-right:5px;">50</span>
             </div>
+            <div class="tick-line" style="left: 20%"></div>
+            <div class="tick-line" style="left: 40%"></div>
+            <div class="tick-line" style="left: 60%"></div>
+            <div class="tick-line" style="left: 80%"></div>
         </div>
     </div>
 
     <div class="history-section">
-        <small>>> GECMIS KAYITLAR</small>
+        <div class="history-title">⏱ GECMIS VERILER (Son 1 Saat)</div>
         <ul id="historyList">
-            <li style="color:#aaa; text-align:center;">Veri bekleniyor...</li>
+            <li style="justify-content:center; color:#aaa;">Veri bekleniyor...</li>
         </ul>
     </div>
 
     <div class="footer">
-        Veri canli olarak Firebase'den cekiliyor.<br>
+        Veriler anlik olarak Firebase Realtime Database uzerinden cekilmektedir.<br>
         <span id="lastUpdate">--</span>
     </div>
 </div>
 
 <script>
-    // 1. Arka Planı Kalplerle Doldur
+    // 1. Arka Planı KÜÇÜK Kalplerle Doldur (Daha yoğun)
     const bgDiv = document.getElementById('bg-pattern');
     let hearts = "";
-    // Sayfayı dolduracak kadar kalp ekle
-    for(let i=0; i<400; i++) {
-        hearts += " ♥ "; 
-        if(i % 20 === 0) hearts += "\n"; // Arada alt satıra geç
+    // Sayıyı artırdım (2500 adet)
+    for(let i=0; i<2500; i++) {
+        hearts += "♥ "; 
+        // Rastgele boşluklar ekle ki doğal dursun
+        if(Math.random() > 0.9) hearts += "   ";
     }
     bgDiv.innerText = hearts;
 
@@ -214,15 +287,13 @@
             // DURUM KUTUSU
             if (data > 0 && data < 10) {
                 statusDiv.className = "status-box danger";
-                statusDiv.innerText = "[ ! ] ENGEL VAR (Role ACIK)";
+                statusDiv.innerText = "⚠️ ENGEL TESPIT EDILDI!";
             } else {
                 statusDiv.className = "status-box safe";
-                statusDiv.innerText = "[ OK ] GUVENLI (Role KAPALI)";
+                statusDiv.innerText = "✅ MESAFE GUVENLI";
             }
             
             // CETVEL GÜNCELLEME
-            // 0cm ile 50cm arasını yüzdeye vuruyoruz. 
-            // 50cm ve üstü %100 dolu gözükür.
             let percent = (data / 50) * 100;
             if (percent > 100) percent = 100;
             if (percent < 0) percent = 0;
@@ -233,21 +304,28 @@
             const timeString = now.toLocaleTimeString();
             updateSpan.innerText = "Son Guncelleme: " + timeString;
 
-            // GEÇMİŞ LİSTESİ
+            // GEÇMİŞ LİSTESİ YÖNETİMİ
             if (true) { 
+                // İlk açılış mesajını temizle
                 if(historyList.children.length > 0 && historyList.children[0].innerText.includes("Veri bekleniyor")) {
                     historyList.innerHTML = "";
                 }
 
                 const li = document.createElement("li");
                 li.className = "new-item";
-                li.innerHTML = `<b>${timeString}</b> : ${data} cm`;
+                li.innerHTML = `<span>⏰ ${timeString}</span> <span><b>${data} cm</b></span>`;
 
                 historyList.prepend(li);
 
-                if (historyList.children.length > 10) {
+                // --- 1 SAAT HESABI ---
+                // ESP32 yaklaşık 10 saniyede bir veri atıyor.
+                // 1 dakika = 6 veri.
+                // 60 dakika = 360 veri.
+                // Listede 360'tan fazla kayıt varsa eskileri sil.
+                if (historyList.children.length > 360) {
                     historyList.removeChild(historyList.lastChild);
                 }
+                
                 lastValue = data;
             }
         }
