@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ESP32 Mesafe Monitor</title>
+    <title>ESP32 Ask Olcer</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -15,75 +15,120 @@
             color: #333;
             margin: 0;
             padding: 20px;
+            overflow-x: hidden; /* Yatay kaydırmayı engelle */
         }
+
+        /* --- ARKA PLAN KALP EFEKTİ --- */
+        #bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* En arkaya at */
+            color: rgba(255, 0, 0, 0.15); /* Kırmızı ve Soluk */
+            font-size: 20px;
+            word-wrap: break-word;
+            overflow: hidden;
+            pointer-events: none; /* Tıklamayı engelleme */
+            line-height: 24px;
+        }
+
         .container {
             max-width: 450px;
             margin: 30px auto;
-            background: #fff;
+            background: rgba(255, 255, 255, 0.9); /* Arkadaki kalpler hafif görünsün diye şeffaf beyaz */
             padding: 20px;
             border: 5px solid #ff69b4; /* Pembe */
             box-shadow: 8px 8px 0px #ffb7b2;
+            position: relative;
+            z-index: 10;
         }
+
         h2 {
             border-bottom: 2px dashed #ff69b4;
             padding-bottom: 10px;
             margin-top: 0;
+            color: #d63384;
         }
+
         .value {
             font-size: 60px;
             font-weight: bold;
             margin: 20px 0;
             display: block;
         }
+
         .status-box {
             padding: 15px;
             margin-top: 20px;
             border: 1px solid #333;
             font-weight: bold;
         }
-        .danger {
-            color: #d8000c;
-            background-color: #ffd2d2;
-        }
-        .safe {
-            color: #4f8a10;
-            background-color: #dff2bf;
-        }
-        
-        /* GEÇMİŞ LİSTESİ TASARIMI */
+        .danger { color: #d8000c; background-color: #ffd2d2; }
+        .safe { color: #4f8a10; background-color: #dff2bf; }
+
+        /* --- GEÇMİŞ LİSTESİ --- */
         .history-section {
             margin-top: 30px;
             text-align: left;
             border-top: 2px dashed #ccc;
             padding-top: 15px;
         }
-        .history-title {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            text-decoration: underline;
-        }
         ul {
-            list-style-type: none; /* Noktaları kaldır */
+            list-style-type: none;
             padding: 0;
             margin: 0;
-            height: 200px; /* Liste uzarsa kaydırma çubuğu */
+            height: 150px;
             overflow-y: auto;
             border: 1px solid #eee;
-            background-color: #fafafa;
+            background-color: #fff;
         }
         li {
-            padding: 8px;
-            font-size: 14px;
+            padding: 5px 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
         }
-        /* Yeni eklenen veri parlasın */
-        .new-item {
-            animation: flash 1s;
-        }
+        .new-item { animation: flash 1s; }
         @keyframes flash {
             0% { background-color: #ffeb3b; }
             100% { background-color: transparent; }
         }
+
+        /* --- CETVEL (RULER) --- */
+        .ruler-section {
+            margin-top: 25px;
+            text-align: left;
+        }
+        .ruler-container {
+            width: 100%;
+            height: 40px;
+            border: 2px solid #333;
+            background: #fff;
+            position: relative;
+            margin-top: 5px;
+        }
+        .ruler-bar {
+            height: 100%;
+            background-color: #ff69b4; /* Pembe Dolgu */
+            width: 0%;
+            transition: width 0.5s ease-in-out; /* Yumuşak geçiş */
+            border-right: 2px solid #333;
+        }
+        .ruler-ticks {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: #555;
+            padding-top: 22px; /* Çizgileri alta it */
+            pointer-events: none;
+        }
+        .tick { border-right: 1px solid #ccc; height: 100%; width: 1px; }
 
         .footer {
             margin-top: 20px;
@@ -93,16 +138,29 @@
     </style>
 </head>
 <body>
+
+<div id="bg-pattern"></div>
+
 <div class="container">
     <h2>MESAFE MONITORU</h2>
     
     <div id="displayValue" class="value">-- cm</div>
     <div id="statusBox" class="status-box">[ ? ] BEKLENIYOR...</div>
 
+    <div class="ruler-section">
+        <small>Gorsel Mesafe (Max 50cm):</small>
+        <div class="ruler-container">
+            <div id="rulerBar" class="ruler-bar"></div>
+            <div class="ruler-ticks">
+                <span>0</span><span>10</span><span>20</span><span>30</span><span>40</span><span>50+</span>
+            </div>
+        </div>
+    </div>
+
     <div class="history-section">
-        <div class="history-title">>> Son Veriler </div>
+        <small>>> GECMIS KAYITLAR</small>
         <ul id="historyList">
-            <li style="color:#aaa; text-align:center;">Henuz veri gelmedi...</li>
+            <li style="color:#aaa; text-align:center;">Veri bekleniyor...</li>
         </ul>
     </div>
 
@@ -113,11 +171,20 @@
 </div>
 
 <script>
+    // 1. Arka Planı Kalplerle Doldur
+    const bgDiv = document.getElementById('bg-pattern');
+    let hearts = "";
+    // Sayfayı dolduracak kadar kalp ekle
+    for(let i=0; i<400; i++) {
+        hearts += " ♥ "; 
+        if(i % 20 === 0) hearts += "\n"; // Arada alt satıra geç
+    }
+    bgDiv.innerText = hearts;
 
+    // --- FIREBASE AYARLARI ---
     const firebaseConfig = {
         apiKey: "AIzaSyBa1JYDzUTa5Hi0pg-SSTDXiDW83o49ZcA", 
         authDomain: "esp-32-distance.firebaseapp.com",
-        // SENİN DÜZELTTİĞİN DOĞRU ADRES:
         databaseURL: "https://esp-32-distance-default-rtdb.europe-west1.firebasedatabase.app",
         projectId: "esp-32-distance",
         storageBucket: "esp-32-distance.appspot.com",
@@ -125,51 +192,62 @@
         appId: "1:1025261979304:web:a36b7d8a66c5a23742649d"
     };
 
-    // Firebase'i başlat
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-
-    // Veriyi Dinle (/sensor/distance yolu)
     const distanceRef = db.ref('/sensor/distance');
     
-    // Eski veriyi tekrar tekrar yazmasın diye son okunanı tutalım
     let lastValue = -1; 
 
     distanceRef.on('value', (snapshot) => {
         const data = snapshot.val();
+        
         const displayDiv = document.getElementById('displayValue');
         const statusDiv = document.getElementById('statusBox');
         const updateSpan = document.getElementById('lastUpdate');
         const historyList = document.getElementById('historyList');
+        const rulerBar = document.getElementById('rulerBar');
 
         if (data !== null) {
-            // 1. Ana Ekranı Güncelle
+            // METİN GÜNCELLEME
             displayDiv.innerText = data + " cm";
 
+            // DURUM KUTUSU
+            if (data > 0 && data < 10) {
+                statusDiv.className = "status-box danger";
+                statusDiv.innerText = "[ ! ] ENGEL VAR (Role ACIK)";
+            } else {
+                statusDiv.className = "status-box safe";
+                statusDiv.innerText = "[ OK ] GUVENLI (Role KAPALI)";
+            }
             
-            // Saat güncelleme
+            // CETVEL GÜNCELLEME
+            // 0cm ile 50cm arasını yüzdeye vuruyoruz. 
+            // 50cm ve üstü %100 dolu gözükür.
+            let percent = (data / 50) * 100;
+            if (percent > 100) percent = 100;
+            if (percent < 0) percent = 0;
+            rulerBar.style.width = percent + "%";
+
+            // SAAT
             const now = new Date();
             const timeString = now.toLocaleTimeString();
             updateSpan.innerText = "Son Guncelleme: " + timeString;
 
-            // 2. Geçmiş Listesine Ekle (Eğer veri değiştiyse veya yeni geldiyse)
-            // Not: Sürekli aynı veri geliyorsa listeyi doldurmasın diye kontrol koydum.
-            // İstersen "data !== lastValue" kısmını kaldırabilirsin.
+            // GEÇMİŞ LİSTESİ
             if (true) { 
-                
-                // İlk açılıştaki "Veri gelmedi" yazısını temizle
-                if(historyList.children.length > 0 && historyList.children[0].innerText.includes("Henuz")) {
+                if(historyList.children.length > 0 && historyList.children[0].innerText.includes("Veri bekleniyor")) {
                     historyList.innerHTML = "";
                 }
 
-                // Yeni liste elemanı oluştur
                 const li = document.createElement("li");
                 li.className = "new-item";
-                li.innerHTML = `<b>[${timeString}]</b> --> ${data} cm`;
+                li.innerHTML = `<b>${timeString}</b> : ${data} cm`;
 
-                // En üste ekle (prepend)
                 historyList.prepend(li);
 
+                if (historyList.children.length > 10) {
+                    historyList.removeChild(historyList.lastChild);
+                }
                 lastValue = data;
             }
         }
@@ -178,6 +256,3 @@
 
 </body>
 </html>
-
-
-
