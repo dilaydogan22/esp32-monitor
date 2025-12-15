@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 Kamera Görüntüleyici</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+        #current-image {
+            max-width: 80vw;
+            max-height: 70vh;
+            border: 5px solid #3498db;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        #info {
+            margin-top: 20px;
+            font-size: 1.1em;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Son Çekilen Görüntü</h1>
+    
+    <img id="current-image" src="placeholder.jpg" alt="ESP32 Kameradan Görüntü Yükleniyor...">
+    
+    <p id="info"></p>
+
+    <script>
+        // *** 1. FIREBASE KONFİGÜRASYONUNUZU BURAYA YAZIN ***
+        // Proje Ayarları -> Uygulamalarınız -> Config'ten alabilirsiniz.
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "...",
+            appId: "..."
+        };
+
+        // Firebase'i başlat
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        // Veritabanındaki 'camera_logs' düğümünü dinle (ESP32 kodunda bu yolu kullanmıştık)
+        const logsRef = database.ref('camera_logs').orderByKey().limitToLast(1);
+
+        logsRef.on('value', (snapshot) => {
+            const imageElement = document.getElementById('current-image');
+            const infoElement = document.getElementById('info');
+            
+            if (snapshot.exists()) {
+                // Son kaydı al
+                let latestLog;
+                snapshot.forEach((childSnapshot) => {
+                    latestLog = childSnapshot.val();
+                });
+
+                if (latestLog && latestLog.image_url) {
+                    // Görüntü kaynağını güncelle
+                    imageElement.src = latestLog.image_url;
+                    
+                    // Zaman damgasını insan tarafından okunabilir hale getir
+                    const timestamp = latestLog.timestamp; // Bu, ESP32'den gelen milisaniye cinsinden zamandır
+                    const date = new Date(timestamp);
+                    
+                    infoElement.textContent = `Son Güncelleme: ${date.toLocaleString()} (Dosya Adı Kayıt Zamanı)`;
+                }
+            } else {
+                infoElement.textContent = "Veritabanında kayıt bulunamadı.";
+            }
+        }, (errorObject) => {
+            console.error("Veri okuma başarısız: " + errorObject.code);
+            infoElement.textContent = "Veritabanı bağlantı hatası.";
+        });
+    </script>
+</body>
+</html>
