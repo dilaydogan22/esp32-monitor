@@ -9,7 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
-        /* CSS kodu aynı kaldı */
+        /* CSS kodları önceki versiyonun ruhunu korur ve iki veri bloğunu destekler */
         body {
             font-family: 'Courier New', monospace;
             background-color: #ffffff;
@@ -35,6 +35,7 @@
             font-weight: bold;
             margin: 10px 0;
         }
+        /* Yeni: Sıcaklık ve Nem Blokları için düzenleme */
         .data-block {
             display: inline-block;
             margin: 0 15px;
@@ -74,7 +75,7 @@
         li {
             border-bottom: 1px dashed #ccc;
             padding: 5px 0;
-            white-space: nowrap; /* Kayıtların tek satırda kalması için */
+            white-space: nowrap; 
         }
         .timestamp {
             font-weight: bold;
@@ -97,6 +98,7 @@
         <div style="font-size: 18px;">NEM</div>
         <div id="latest-nem" class="latest-val">--</div>
     </div>
+    
     <button onclick="downloadData()" class="btn">[ .TXT OLARAK INDIR ]</button>
 
     <div style="text-align:left;">> GECMIS KAYITLAR (Her 5 Dk):</div>
@@ -111,9 +113,9 @@
 <script>
     // --- FIREBASE AYARLARI ---
     const firebaseConfig = {
+        // BURAYA KENDİ GERÇEK API KEYİNİZİ GİRİN
         apiKey: "AIzaSyBa1JYDzUTa5Hi0pg-SSTDXiDW83o49ZcA", 
         authDomain: "esp-32-distance.firebaseapp.com",
-        // Senin DÜZELTTİĞİN adres:
         databaseURL: "https://esp-32-distance-default-rtdb.europe-west1.firebasedatabase.app",
         projectId: "esp-32-distance",
         storageBucket: "esp-32-distance.appspot.com",
@@ -124,17 +126,17 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    // Geçmiş verilerin tutulacağı yol: /sensor/history (Aynı kaldı)
+    // Geçmiş verilerin yolu: /sensor/history
     const historyRef = db.ref('/sensor/history').limitToLast(288);
     
-    let allDataText = ""; // İndirme için metni burada biriktireceğiz
+    let allDataText = ""; 
 
     historyRef.on('value', (snapshot) => {
         const listElement = document.getElementById('historyList');
-        const latestSicaklikElement = document.getElementById('latest-sicaklik'); // YENİ
-        const latestNemElement = document.getElementById('latest-nem');          // YENİ
+        const latestSicaklikElement = document.getElementById('latest-sicaklik');
+        const latestNemElement = document.getElementById('latest-nem');
         
-        listElement.innerHTML = ""; // Listeyi temizle
+        listElement.innerHTML = ""; 
         
         // İndirme Dosyası Başlığı GÜNCELLENDİ
         allDataText = "ZAMAN                | SICAKLIK | NEM\n--------------------------------------------\n";
@@ -142,38 +144,36 @@
         let lastSicaklik = "--";
         let lastNem = "--";
         
-        // Firebase'den gelen verileri diziye çevir
         const dataArr = [];
         snapshot.forEach((childSnapshot) => {
             dataArr.push(childSnapshot.val());
         });
 
-        // Verileri tersten (yeni en üstte) sırala
+        // Verileri tersten sırala (en yeni en üstte)
         dataArr.reverse();
 
         if (dataArr.length > 0) {
             
-            // En son verileri ayır
             const latestData = dataArr[0];
             
-            // Sıcaklık ve Nem verilerini kontrol et ve birimleri ayarla
-            lastSicaklik = isNaN(latestData.sicaklik) ? latestData.sicaklik : latestData.sicaklik + " °C";
-            lastNem = isNaN(latestData.nem) ? latestData.nem : latestData.nem + " %";
+            // Son verileri oku ve birim ekle
+            // *** DÜZENLEME: .sicaklik ve .nem anahtarları kullanılır. ***
+            lastSicaklik = isNaN(latestData.sicaklik) || latestData.sicaklik === 'HATA' ? latestData.sicaklik : latestData.sicaklik + " °C";
+            lastNem = isNaN(latestData.nem) || latestData.nem === 'HATA' ? latestData.nem : latestData.nem + " %";
             
             // Listeyi oluştur
             dataArr.forEach((item) => {
                 
-                // Birimleri ve Hata Kontrolünü Listeye Uygula
-                const sicaklikDisplay = isNaN(item.sicaklik) ? item.sicaklik : item.sicaklik + " °C"; 
-                const nemDisplay = isNaN(item.nem) ? item.nem : item.nem + " %";
+                // Listede gösterilecek format
+                const sicaklikDisplay = isNaN(item.sicaklik) || item.sicaklik === 'HATA' ? item.sicaklik : item.sicaklik + " °C"; 
+                const nemDisplay = isNaN(item.nem) || item.nem === 'HATA' ? item.nem : item.nem + " %";
                 
                 // Listeye Ekle
                 const li = document.createElement("li");
                 li.innerHTML = `<span class="timestamp">[ ${item.zaman} ]</span> Sıcaklık: ${sicaklikDisplay} / Nem: ${nemDisplay}`;
                 listElement.appendChild(li);
 
-                // İndirme metnine ekle
-                // TXT dosyasında sadece sayıları veya HATA bilgisini yazıyoruz.
+                // İndirme metnine ekle (HATA varsa HATA olarak yazar)
                 allDataText += `${item.zaman} | ${item.sicaklik}       | ${item.nem}\n`;
             });
         } else {
@@ -185,14 +185,14 @@
         latestNemElement.innerText = lastNem;
     });
 
-    // --- DOSYA İNDİRME FONKSİYONU (Aynı kaldı) ---
+    // --- DOSYA İNDİRME FONKSİYONU ---
     function downloadData() {
         const blob = new Blob([allDataText], { type: 'text/plain' });
         const url = window.URL.createObjectURL(blob);
         
         const a = document.createElement('a');
         a.href = url;
-        a.download = "dht22_verileri.txt"; // İndirilen dosya adı güncellendi
+        a.download = "dht22_verileri.txt"; 
         document.body.appendChild(a);
         a.click();
         
