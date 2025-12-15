@@ -3,27 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ESP32 DHT22 Veri İzleme</title>
+    <title>ESP32 Kamera & Sensör İzleme</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
-        /* SADECE BURAYI DEĞİŞTİRDİK */
         body {
             font-family: 'Courier New', monospace;
-            background-color: #FFD1DC; /* Açık Pembe Tonu */
+            background-color: #FFD1DC;
             color: #000;
             text-align: center;
             padding: 20px;
         }
-        /* Diğer stiller (container, h1, latest-val, vb.) aynı kalır */
         .container {
-            max-width: 600px;
+            max-width: 1000px;
             margin: 0 auto;
             border: 2px solid #000;
             padding: 20px;
-            background-color: #FFFFFF; /* İçeriğin daha okunaklı olması için konteyner beyaz kalabilir */
+            background-color: #FFFFFF;
         }
         h1 {
             font-size: 24px;
@@ -32,6 +30,18 @@
             margin-top: 0;
             text-transform: uppercase;
         }
+        /* Görüntü Stili */
+        #latest-image {
+            width: 100%;
+            max-width: 640px; 
+            height: auto;
+            border: 3px solid #000;
+            margin: 20px 0;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        /* Sensör Veri Blokları */
         .latest-val {
             font-size: 60px;
             font-weight: bold;
@@ -43,22 +53,6 @@
             border: 1px dashed #000;
             padding: 10px;
             min-width: 200px;
-        }
-        .btn {
-            background: #fff;
-            border: 2px solid #000;
-            color: #000;
-            padding: 10px 20px;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            margin-bottom: 20px;
-        }
-        .btn:hover {
-            background: #000;
-            color: #fff;
         }
         .log-box {
             text-align: left;
@@ -82,14 +76,19 @@
             font-weight: bold;
             margin-right: 15px;
         }
+        .image-link {
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>[ DHT22 SICAKLIK & NEM KAYDI ]</h1>
+    <h1>[ ESP32 KAMERA & SENSÖR İZLEME ]</h1>
     
-    <div>SON OLCUM:</div>
+    <img id="latest-image" src="placeholder.jpg" alt="Kameradan Görüntü Yükleniyor...">
+    
+    <div>SON OLCUM VE GÖRÜNTÜ:</div>
     
     <div class="data-block">
         <div style="font-size: 18px;">SICAKLIK</div>
@@ -100,7 +99,7 @@
         <div id="latest-nem" class="latest-val">--</div>
     </div>
     
-    <button onclick="downloadData()" class="btn">[ .TXT OLARAK INDIR ]</button>
+    <button onclick="downloadData()" class="btn">[ .TXT OLARAK İNDİR ]</button>
 
     <div style="text-align:left;">> GECMIS KAYITLAR (Her 5 Dk):</div>
     
@@ -112,7 +111,7 @@
 </div>
 
 <script>
-    // --- FIREBASE AYARLARI ---
+    // 🚨 FIREBASE AYARLARI 🚨
     const firebaseConfig = {
         apiKey: "AIzaSyBa1JYDzUTa5Hi0pg-SSTDXiDW83o49ZcA", 
         authDomain: "esp-32-distance.firebaseapp.com",
@@ -134,45 +133,61 @@
         const listElement = document.getElementById('historyList');
         const latestSicaklikElement = document.getElementById('latest-sicaklik');
         const latestNemElement = document.getElementById('latest-nem');
+        const latestImageElement = document.getElementById('latest-image');
         
         listElement.innerHTML = ""; 
         
-        allDataText = "ZAMAN                | SICAKLIK | NEM\n--------------------------------------------\n";
+        allDataText = "ZAMAN           | SICAKLIK | NEM | GÖRÜNTÜ URL\n--------------------------------------------\n";
         
         let lastSicaklik = "--";
         let lastNem = "--";
-        
+        let lastImageUrl = "placeholder.jpg";
+
         const dataArr = [];
         snapshot.forEach((childSnapshot) => {
             dataArr.push(childSnapshot.val());
         });
 
-        dataArr.reverse();
+        dataArr.reverse(); // En son kaydı en üste almak için
 
         if (dataArr.length > 0) {
             
             const latestData = dataArr[0];
             
+            // En son verileri ayarla
             lastSicaklik = isNaN(latestData.sicaklik) || latestData.sicaklik === 'HATA' ? latestData.sicaklik : latestData.sicaklik + " °C";
             lastNem = isNaN(latestData.nem) || latestData.nem === 'HATA' ? latestData.nem : latestData.nem + " %";
             
+            if (latestData.image_url) {
+                lastImageUrl = latestData.image_url;
+            }
+            
+            // Geçmiş Kayıtları Listeleme
             dataArr.forEach((item) => {
                 
                 const sicaklikDisplay = isNaN(item.sicaklik) || item.sicaklik === 'HATA' ? item.sicaklik : item.sicaklik + " °C"; 
                 const nemDisplay = isNaN(item.nem) || item.nem === 'HATA' ? item.nem : item.nem + " %";
                 
                 const li = document.createElement("li");
-                li.innerHTML = `<span class="timestamp">[ ${item.zaman} ]</span> Sıcaklık: ${sicaklikDisplay} / Nem: ${nemDisplay}`;
+                
+                // Görüntü linkini ekle
+                const imageLink = item.image_url ? `<a href="${item.image_url}" target="_blank" class="image-link">[ Görüntüyü Aç ]</a>` : "";
+                
+                li.innerHTML = `<span class="timestamp">[ ${item.zaman} ]</span> Sıcaklık: ${sicaklikDisplay} / Nem: ${nemDisplay} ${imageLink}`;
                 listElement.appendChild(li);
 
-                allDataText += `${item.zaman} | ${item.sicaklik}       | ${item.nem}\n`;
+                // İndirilebilir Metin İçeriği
+                allDataText += `${item.zaman} | ${item.sicaklik} | ${item.nem} | ${item.image_url || 'Yok'}\n`;
             });
         } else {
             listElement.innerHTML = "<li>Henuz kayit yok.</li>";
         }
         
+        // Ekrana Verileri ve Görüntüyü Yansıtma
         latestSicaklikElement.innerText = lastSicaklik;
         latestNemElement.innerText = lastNem;
+        latestImageElement.src = lastImageUrl;
+        latestImageElement.alt = latestData ? latestData.zaman + " tarihli görüntü" : "Görüntü yok";
     });
 
     // --- DOSYA İNDİRME FONKSİYONU ---
@@ -182,7 +197,7 @@
         
         const a = document.createElement('a');
         a.href = url;
-        a.download = "dht22_verileri.txt"; 
+        a.download = "sensor_kamera_verileri.txt"; 
         document.body.appendChild(a);
         a.click();
         
