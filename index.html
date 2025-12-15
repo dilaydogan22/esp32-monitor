@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ESP32 Datalogger</title>
+    <title>ESP32 DHT22 Veri İzleme</title>
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
+        /* CSS kodu aynı kaldı */
         body {
             font-family: 'Courier New', monospace;
             background-color: #ffffff;
@@ -31,7 +33,14 @@
         .latest-val {
             font-size: 60px;
             font-weight: bold;
-            margin: 20px 0;
+            margin: 10px 0;
+        }
+        .data-block {
+            display: inline-block;
+            margin: 0 15px;
+            border: 1px dashed #000;
+            padding: 10px;
+            min-width: 200px;
         }
         .btn {
             background: #fff;
@@ -65,6 +74,7 @@
         li {
             border-bottom: 1px dashed #ccc;
             padding: 5px 0;
+            white-space: nowrap; /* Kayıtların tek satırda kalması için */
         }
         .timestamp {
             font-weight: bold;
@@ -75,11 +85,18 @@
 <body>
 
 <div class="container">
-    <h1>[ 24 SAAT VERI KAYDI ]</h1>
+    <h1>[ DHT22 SICAKLIK & NEM KAYDI ]</h1>
     
     <div>SON OLCUM:</div>
-    <div id="latest" class="latest-val">--</div>
     
+    <div class="data-block">
+        <div style="font-size: 18px;">SICAKLIK</div>
+        <div id="latest-sicaklik" class="latest-val">--</div>
+    </div>
+    <div class="data-block">
+        <div style="font-size: 18px;">NEM</div>
+        <div id="latest-nem" class="latest-val">--</div>
+    </div>
     <button onclick="downloadData()" class="btn">[ .TXT OLARAK INDIR ]</button>
 
     <div style="text-align:left;">> GECMIS KAYITLAR (Her 5 Dk):</div>
@@ -107,68 +124,78 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    // Geçmiş verilerin tutulacağı yol: /sensor/history
-    // limitToLast(288) komutu son 288 veriyi çeker (24 saat x 12 veri)
+    // Geçmiş verilerin tutulacağı yol: /sensor/history (Aynı kaldı)
     const historyRef = db.ref('/sensor/history').limitToLast(288);
     
     let allDataText = ""; // İndirme için metni burada biriktireceğiz
 
     historyRef.on('value', (snapshot) => {
         const listElement = document.getElementById('historyList');
-        const latestElement = document.getElementById('latest');
+        const latestSicaklikElement = document.getElementById('latest-sicaklik'); // YENİ
+        const latestNemElement = document.getElementById('latest-nem');          // YENİ
         
         listElement.innerHTML = ""; // Listeyi temizle
-        allDataText = "ZAMAN  | MESAFE\n----------------\n"; // Dosya başlığı
         
-        let lastVal = "--";
+        // İndirme Dosyası Başlığı GÜNCELLENDİ
+        allDataText = "ZAMAN                | SICAKLIK | NEM\n--------------------------------------------\n";
         
-        // Firebase'den gelen veriler nesne (object) olarak gelir, diziye çevirelim
+        let lastSicaklik = "--";
+        let lastNem = "--";
+        
+        // Firebase'den gelen verileri diziye çevir
         const dataArr = [];
         snapshot.forEach((childSnapshot) => {
             dataArr.push(childSnapshot.val());
         });
 
-        // Verileri tersten (yeni en üstte) sıralayalım
+        // Verileri tersten (yeni en üstte) sırala
         dataArr.reverse();
 
         if (dataArr.length > 0) {
-            // En son veriyi ekrana yaz
-            lastVal = dataArr[0].mesafe + " cm";
+            
+            // En son verileri ayır
+            const latestData = dataArr[0];
+            
+            // Sıcaklık ve Nem verilerini kontrol et ve birimleri ayarla
+            lastSicaklik = isNaN(latestData.sicaklik) ? latestData.sicaklik : latestData.sicaklik + " °C";
+            lastNem = isNaN(latestData.nem) ? latestData.nem : latestData.nem + " %";
             
             // Listeyi oluştur
             dataArr.forEach((item) => {
+                
+                // Birimleri ve Hata Kontrolünü Listeye Uygula
+                const sicaklikDisplay = isNaN(item.sicaklik) ? item.sicaklik : item.sicaklik + " °C"; 
+                const nemDisplay = isNaN(item.nem) ? item.nem : item.nem + " %";
+                
                 // Listeye Ekle
                 const li = document.createElement("li");
-                // Gelen veri sayı mı kontrol et (isNaN = Is Not a Number)
-                let birim = isNaN(item.mesafe) ? "" : " cm"; 
-                li.innerHTML = `<span class="timestamp">[ ${item.zaman} ]</span> -> ${item.mesafe}${birim}`;
-                allDataText += `${item.zaman}  | ${item.mesafe}${birim}\n`;
+                li.innerHTML = `<span class="timestamp">[ ${item.zaman} ]</span> Sıcaklık: ${sicaklikDisplay} / Nem: ${nemDisplay}`;
                 listElement.appendChild(li);
 
                 // İndirme metnine ekle
-                allDataText += `${item.zaman}  | ${item.mesafe} cm\n`;
+                // TXT dosyasında sadece sayıları veya HATA bilgisini yazıyoruz.
+                allDataText += `${item.zaman} | ${item.sicaklik}       | ${item.nem}\n`;
             });
         } else {
             listElement.innerHTML = "<li>Henuz kayit yok.</li>";
         }
         
-        latestElement.innerText = lastVal;
+        // SON ÖLÇÜM alanlarını güncelle
+        latestSicaklikElement.innerText = lastSicaklik;
+        latestNemElement.innerText = lastNem;
     });
 
-    // --- DOSYA İNDİRME FONKSİYONU ---
+    // --- DOSYA İNDİRME FONKSİYONU (Aynı kaldı) ---
     function downloadData() {
-        // Metin dosyasını oluştur
         const blob = new Blob([allDataText], { type: 'text/plain' });
         const url = window.URL.createObjectURL(blob);
         
-        // Gizli bir link oluşturup tıklat
         const a = document.createElement('a');
         a.href = url;
-        a.download = "sensor_verileri.txt"; // İndirilen dosya adı
+        a.download = "dht22_verileri.txt"; // İndirilen dosya adı güncellendi
         document.body.appendChild(a);
         a.click();
         
-        // Temizlik
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
     }
@@ -176,4 +203,3 @@
 
 </body>
 </html>
-
